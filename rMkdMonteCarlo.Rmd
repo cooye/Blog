@@ -1,0 +1,79 @@
+---
+title: "RMonteCarlo"
+author: "DavidGrigsby"
+date: "July 13, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(qualityTools)
+```
+
+## R Markdown
+
+This is an example of using montecarlo in R:
+
+```{r cars}
+seedToSet<-1
+set.seed(seedToSet)
+#Number of items for simulation
+nSim<-5000
+
+#Process 1, Customer Inquiry, Lognormal Distribution, mean of 1 hour standard deviation of .25
+set.seed(seedToSet)
+process1<-rlnorm(nSim,meanlog=1,sdlog=.25)
+
+#process2=Loan Application, Average 24hr, minimum 7 maximum 42, Beta distribution, Alpha=2.5, Beta=7
+set.seed(seedToSet)
+process2<-rbeta(nSim,2.5,7)
+process2<-7+process2*(42-7)
+
+#Process3, Document Variation, 16 to 32 hr, but 20% of time could take 32 to 48 hours
+set.seed(seedToSet)
+process3v1<-runif(nSim,16,32)
+set.seed(seedToSet)
+process3v2<-runif(nSim,32,48)
+prob3V1<-.8
+set.seed(seedToSet)
+process3Event<-runif(nSim,0,1)
+process3 <-runif(nSim,0,1)
+#set the actual process 3 results based on which event was chosen
+for (i in 1:nSim){
+  if(process3Event[i]<=prob3V1) {
+    process3[i]<-process3v1[i]
+  } else {
+    process3[i]<-process3v2[i]
+  }
+}
+
+#Process 4, Loan underwriting, approves or disproves, uniform of 1-8 hours
+process4<-runif(nSim, 1,8)
+
+#Process5, Loan Closing, average 16 hr, normal Distribution, 16, sd=2
+process5<-rnorm(nSim,16,2)
+
+#Process6, Loan Disbursement, 66% of time fals within 12 and 20...normal Dist, avg=16, sd=4
+process6<-rnorm(nSim, 16,4)
+
+#Total Process
+processTotal <- process1+process2+process3+process4+process5+process6
+
+
+summary(processTotal)
+
+#capability
+
+pcr(processTotal,"normal",50,96,96, main="Process Total")
+```
+
+## Including Plots
+
+Histogram
+
+```{r pressure, echo=FALSE}
+#Plot the total
+hist(processTotal)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
